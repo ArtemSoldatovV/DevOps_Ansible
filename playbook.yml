@@ -1,0 +1,119 @@
+---
+- hosts: localhost
+  # variables
+  vars:
+    template_file: file1.txt
+    the_path_to_copy: copy file
+  
+  gather_facts: false
+
+  tasks:
+  #2 create a file
+  - name: Creating a file with content
+    copy:
+      dest: "{{ template_file }}"
+      content: |
+        line 01
+
+  #2 changing the file
+  - name: Update the file contents
+    copy:
+      dest: "{{ template_file }}"
+      content: |
+        modified string
+
+  #2 deleting a file
+  - name: Delete file
+    file:
+      path: "{{ template_file}}"
+      state: absent
+
+  
+  #3 create a file
+  - name: Creating a file with content2
+    copy:
+      dest: "{{ template_file }}"
+      content: |
+        line 01
+
+  #3 copying to another directory
+  - name: Copy files
+    ansible.builtin.copy:
+      src: "{{ template_file }}"
+      dest: "{{ the_path_to_copy + '/' + template_file \"copy\"}}"
+
+  #4 Execute commands (output IP and download from memory)  and format it into a readable response.
+  - name: Get an IP address
+    command: hostname -I
+    register: ip_addr_output
+
+  - name: Get a memory download
+    command: free -h
+    register: memory_usage
+
+  - name: output of the IP address
+    debug:
+      msg: |
+        The IP address of the host {{ user }}:
+        {% if ip_addr_output.stdout_lines | length > 0 and ip_addr_output.stdout_lines[0] != "" %}
+          {{ ip_addr_output.stdout_lines[0].split()[0] }}
+        {% else %}
+          IP address not found.
+        {% endif %}
+
+  - name: Output the download from memory in a readable form
+    debug:
+      msg: |
+        Loading from memory on {{ user }}:
+        {{ memory_usage.stdout }}
+
+  #5 Install some program using ansible on controlled machines
+
+  - name: Install nginx
+    apt:
+      name: nginx
+      state: latest
+      update_cache: yes
+  
+  - name: Add user to group root
+    user:
+      name: "{{ user }}"
+      groups: root
+      state: present
+
+  - name: Remove default nginx configuration
+    file:
+      path: /etc/nginx/sites-enabled/default
+      state: absent
+
+  - name: Add nginx configuration
+    copy:
+      src: <control-node-path-to>/static-site-config
+      dest: /etc/nginx/sites-available/
+      owner: "{{ user }}"
+      group: root
+      mode: '0644'
+
+  - name: Enable website configuration
+    file:
+      src: /etc/nginx/sites-available/static-site-config
+      dest: /etc/nginx/sites-enabled/static-site-config
+      state: link
+  
+  - name: Enable website configuration
+    file:
+      src: /etc/nginx/sites-available/static-site-config
+      dest: /etc/nginx/sites-enabled/static-site-config
+      state: link
+
+  - name: Ensure nginx is running
+    systemd:
+      name: nginx
+      state: started
+      enabled: yes
+  #6 deleting an installed program
+  - name: delete nginx
+    apt:
+      name: nginx
+      state: absent
+      purge: yes
