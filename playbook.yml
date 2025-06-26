@@ -4,6 +4,7 @@
   vars:
     template_file: file1.txt
     the_path_to_copy: copy file
+    catalog_copy_file: copy file
   
   gather_facts: false
 
@@ -35,6 +36,11 @@
       dest: "{{ template_file }}"
       content: |
         line 01
+
+  - name: Creates directory for wget
+    ansible.builtin.file:
+      path: "{{catalog_copy_file}}"
+      state: directory
 
   #3 copying to another directory
   - name: Copy files
