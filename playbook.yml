@@ -5,6 +5,7 @@
     template_file: file1.txt
     the_path_to_copy: copy file
     catalog_copy_file: copy file
+    user: root
   
   gather_facts: false
 
@@ -46,7 +47,7 @@
   - name: Copy files
     ansible.builtin.copy:
       src: "{{ template_file }}"
-      dest: "{{ the_path_to_copy + '/' + template_file \"copy\"}}"
+      dest: "{{ the_path_to_copy + '/' + template_file + 'copy'}}"
 
   #4 Execute commands (output IP and download from memory)  and format it into a readable response.
   - name: Get an IP address
